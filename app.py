@@ -79,7 +79,7 @@ if selected == "Consumer Search":
             
             # Gemini 2.0 Flash with Google Search Grounding
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 config=types.GenerateContentConfig(
                     tools=[types.Tool(google_search=types.GoogleSearch())],
                     temperature=0.0,
