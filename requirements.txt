@@ -1,0 +1,6 @@
+streamlit
+pandas
+google-genai
+supabase
+plotly
+streamlit-option-menu
