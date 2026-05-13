@@ -9,109 +9,184 @@ import json
 import re
 from difflib import SequenceMatcher
 
+# -------------------------------------------------
+# 1. 기본 설정
+# -------------------------------------------------
 st.set_page_config(
     page_title="Consumer Pulse AI",
     layout="wide"
 )
 
+# -------------------------------------------------
+# 2. 디자인 CSS
+# -------------------------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Pretendard', sans-serif;
 }
 
-.main {
-    background-color: #F8FAFC;
+.stApp {
+    background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
 }
 
 .block-container {
-    padding-top: 2rem;
+    padding-top: 2.2rem;
+    padding-bottom: 3rem;
 }
 
-.stButton > button {
-    background-color: #4F46E5;
-    color: white;
-    border-radius: 10px;
-    border: none;
-    padding: 0.65rem 1.2rem;
-    font-weight: 600;
+section[data-testid="stSidebar"] {
+    background: #111827;
 }
 
-.stButton > button:hover {
-    background-color: #4338CA;
-    color: white;
-    border: none;
+section[data-testid="stSidebar"] * {
+    color: #F9FAFB;
 }
 
-.card {
-    background-color: white;
-    padding: 1.4rem;
-    border-radius: 16px;
-    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-    margin-bottom: 1rem;
-    border: 1px solid #E5E7EB;
+.main-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 0.3rem;
 }
 
-.kpi-card {
-    background-color: white;
-    padding: 1.1rem;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-    border: 1px solid #E5E7EB;
-}
-
-.kpi-card small {
+.sub-text {
     color: #64748B;
-    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-.kpi-card h3 {
-    margin-top: 0.4rem;
-    margin-bottom: 0;
+.search-box {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #E5E7EB;
+    border-radius: 22px;
+    padding: 1.4rem;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+    margin-bottom: 1.3rem;
+}
+
+.insight-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.insight-title {
+    font-size: 1.08rem;
+    font-weight: 750;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.meta {
+    color: #64748B;
+    font-size: 0.88rem;
+    margin-bottom: 0.8rem;
+}
+
+.summary {
+    color: #334155;
+    line-height: 1.65;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-right: 0.4rem;
 }
 
 .badge-positive {
-    background-color: #DCFCE7;
+    background: #DCFCE7;
     color: #166534;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .badge-neutral {
-    background-color: #F1F5F9;
+    background: #F1F5F9;
     color: #334155;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .badge-negative {
-    background-color: #FEE2E2;
+    background: #FEE2E2;
     color: #991B1B;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
+}
+
+.badge-low {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.badge-medium {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.badge-high {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+.kpi-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    padding: 1.2rem;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.kpi-label {
+    color: #64748B;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.kpi-value {
+    color: #111827;
+    font-size: 1.7rem;
+    font-weight: 800;
+    margin-top: 0.35rem;
+}
+
+.stButton > button {
+    background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    color: white;
+    border: none;
+    border-radius: 13px;
+    padding: 0.65rem 1rem;
+    font-weight: 700;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #4338CA, #6D28D9);
+    color: white;
+    border: none;
+}
+
+div[data-testid="stMetricValue"] {
+    font-weight: 800;
 }
 </style>
 """, unsafe_allow_html=True)
 
-
+# -------------------------------------------------
+# 3. 연결 설정
+# -------------------------------------------------
 @st.cache_resource
 def init_supabase() -> Client:
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-
 @st.cache_resource
 def init_gemini():
     return genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
 
 try:
     supabase = init_supabase()
@@ -120,8 +195,10 @@ except Exception:
     st.error("Secrets 설정을 확인하세요. GEMINI_API_KEY, SUPABASE_URL, SUPABASE_KEY가 필요합니다.")
     st.stop()
 
-
-def extract_json_array(text: str):
+# -------------------------------------------------
+# 4. 보조 함수
+# -------------------------------------------------
+def extract_json_array(text):
     if not text:
         return []
 
@@ -130,7 +207,10 @@ def extract_json_array(text: str):
 
     try:
         data = json.loads(cleaned)
-        return data if isinstance(data, list) else []
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            return [data]
     except Exception:
         pass
 
@@ -144,7 +224,6 @@ def extract_json_array(text: str):
 
     return []
 
-
 def normalize_sentiment(value):
     value = str(value).lower()
     if "positive" in value or "긍정" in value:
@@ -153,15 +232,13 @@ def normalize_sentiment(value):
         return "Negative"
     return "Neutral"
 
-
 def normalize_risk(value):
     value = str(value).lower()
     if "high" in value or "높" in value:
         return "High"
-    if "medium" in value or "중" in value:
+    if "medium" in value or "보통" in value or "중" in value:
         return "Medium"
     return "Low"
-
 
 def sentiment_ko(value):
     return {
@@ -170,7 +247,6 @@ def sentiment_ko(value):
         "Negative": "부정"
     }.get(value, "중립")
 
-
 def risk_ko(value):
     return {
         "Low": "낮음",
@@ -178,6 +254,19 @@ def risk_ko(value):
         "High": "높음"
     }.get(value, "낮음")
 
+def sentiment_badge_class(value):
+    return {
+        "Positive": "badge-positive",
+        "Neutral": "badge-neutral",
+        "Negative": "badge-negative"
+    }.get(value, "badge-neutral")
+
+def risk_badge_class(value):
+    return {
+        "Low": "badge-low",
+        "Medium": "badge-medium",
+        "High": "badge-high"
+    }.get(value, "badge-low")
 
 def title_similarity(a, b):
     a = re.sub(r"\s+", "", str(a).lower())
@@ -186,21 +275,20 @@ def title_similarity(a, b):
         return 0
     return SequenceMatcher(None, a, b).ratio()
 
-
-def replace_with_grounded_urls(items, response):
+def replace_with_grounded_urls(items, search_response):
     try:
-        chunks = response.candidates[0].grounding_metadata.grounding_chunks
+        chunks = search_response.candidates[0].grounding_metadata.grounding_chunks
     except Exception:
         chunks = []
 
-    grounded_sources = []
+    sources = []
 
     for chunk in chunks:
         try:
             title = chunk.web.title
             uri = chunk.web.uri
             if uri and uri.startswith("http") and "grounding-api-redirect" not in uri:
-                grounded_sources.append({"title": title, "url": uri})
+                sources.append({"title": title, "url": uri})
         except Exception:
             continue
 
@@ -208,42 +296,63 @@ def replace_with_grounded_urls(items, response):
         best_url = item.get("url", "")
         best_score = 0
 
-        for source in grounded_sources:
+        for source in sources:
             score = title_similarity(item.get("title", ""), source.get("title", ""))
             if score > best_score:
                 best_score = score
                 best_url = source["url"]
 
-        if best_score >= 0.25 and best_url.startswith("http") and "grounding-api-redirect" not in best_url:
+        if best_score >= 0.2 and best_url.startswith("http") and "grounding-api-redirect" not in best_url:
             item["url"] = best_url
 
     return items
 
+def safe_text(value, default=""):
+    value = str(value).strip()
+    return value if value else default
 
+# -------------------------------------------------
+# 5. 사이드바
+# -------------------------------------------------
 with st.sidebar:
-    st.title("Consumer Pulse AI")
+    st.markdown("<h2 style='font-weight:800; margin-bottom:0;'>Consumer<br>Pulse AI</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#CBD5E1; font-size:0.9rem;'>브랜드 반응 분석 플랫폼</p>", unsafe_allow_html=True)
+
     selected = option_menu(
         menu_title=None,
-        options=["소비자 반응 검색", "저장된 인사이트", "분석 대시보드"],
-        icons=["search", "archive", "bar-chart-line"],
-        menu_icon="cast",
+        options=["소비자 반응 검색", "인사이트 저장소", "분석 대시보드"],
+        icons=["search", "folder2-open", "bar-chart"],
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#FAFAFA"},
+            "container": {"padding": "0!important", "background-color": "#111827"},
+            "icon": {"color": "#E0E7FF", "font-size": "16px"},
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
-                "margin": "5px",
-                "--hover-color": "#EEF2FF"
+                "margin": "6px 0",
+                "color": "#E5E7EB",
+                "--hover-color": "#1F2937",
+                "border-radius": "12px"
             },
-            "nav-link-selected": {"background-color": "#4F46E5"},
+            "nav-link-selected": {
+                "background": "linear-gradient(135deg, #4F46E5, #7C3AED)",
+                "color": "white",
+                "font-weight": "700"
+            },
         }
     )
 
-
+# -------------------------------------------------
+# 6. 소비자 반응 검색
+# -------------------------------------------------
 if selected == "소비자 반응 검색":
-    st.subheader("소비자 반응 검색")
-    st.caption("브랜드나 서비스를 입력하면 최신 소비자 반응, 불만 요소, 리스크 수준을 자동으로 분석합니다.")
+    st.markdown("<div class='main-title'>소비자 반응 검색</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='sub-text'>브랜드나 서비스를 입력하면 최신 소비자 반응, 불만 요소, 평판 리스크를 자동으로 분석합니다.</div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<div class='search-box'>", unsafe_allow_html=True)
 
     col1, col2 = st.columns([4, 1])
 
@@ -257,116 +366,136 @@ if selected == "소비자 반응 검색":
         st.write("")
         search_btn = st.button("분석 시작", use_container_width=True)
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.caption("검색 결과는 Supabase 데이터베이스에 자동 저장됩니다. 동일 URL은 중복 저장되지 않습니다.")
+
     if search_btn:
         if not keyword.strip():
             st.warning("검색할 브랜드 또는 서비스명을 입력하세요.")
             st.stop()
 
         with st.spinner("최신 소비자 반응을 검색하고 분석하는 중입니다..."):
-            prompt = f"""
-다음 브랜드 또는 서비스에 대한 최신 소비자 반응과 불만 관련 뉴스 딱 2건만 검색해줘.
+            search_prompt = f"""
+너는 소비자 인사이트 분석가야.
+
+다음 브랜드 또는 서비스와 관련된 최신 소비자 반응, 불만, 논란, 서비스 이슈, 평판 리스크를 검색해줘.
 
 검색어: {keyword}
 
-반드시 아래 JSON 배열 형식으로만 답변해.
-마크다운 설명, 코드블록, 추가 문장은 절대 넣지 마.
-
-[
-  {{
-    "title": "기사 제목",
-    "source": "출처",
-    "news_date": "YYYY-MM-DD",
-    "url": "실제 기사 URL",
-    "summary": "소비자 반응과 불만 요소 중심의 2~3문장 요약",
-    "sentiment": "Positive 또는 Neutral 또는 Negative",
-    "risk_level": "Low 또는 Medium 또는 High"
-  }}
-]
-
-규칙:
-1. Google Search로 확인한 최신 정보만 사용해.
-2. URL은 절대 지어내지 마.
-3. 소비자 불만, 서비스 문제, 가격, 품질, 배송, 고객 응대, 브랜드 평판 이슈가 있으면 요약에 반영해.
-4. sentiment와 risk_level은 반드시 영어 값으로 작성해.
+조건:
+1. Google Search로 최신 자료를 확인해.
+2. 뉴스, 기사, 공식 발표, 신뢰 가능한 웹 문서를 중심으로 찾아.
+3. 소비자 불만, 배송, 가격, 품질, 고객응대, 서비스 장애, 브랜드 평판 이슈를 우선적으로 봐.
+4. 분석 대상은 딱 2건만 선정해.
+5. URL은 실제 검색 결과에 있는 링크만 사용해.
 """
 
             try:
-                response = client.models.generate_content(
+                search_response = client.models.generate_content(
                     model="gemini-2.5-flash",
-                    contents=prompt,
+                    contents=search_prompt,
                     config=types.GenerateContentConfig(
                         tools=[types.Tool(google_search=types.GoogleSearch())],
                         temperature=0.0,
                     ),
                 )
             except Exception as e:
-                st.error("Gemini API 호출 중 문제가 발생했습니다. API 키, 사용량 제한, 모델 접근 권한을 확인하세요.")
+                st.error("Gemini 검색 호출 중 문제가 발생했습니다. API 키, 사용량 제한, 모델 접근 권한을 확인하세요.")
                 st.caption(str(e))
                 st.stop()
 
-            items = extract_json_array(response.text)
-            if not items:
-                st.error("AI 응답을 JSON으로 해석하지 못했습니다. 잠시 후 다시 검색해 보세요.")
+            json_prompt = f"""
+아래 검색 결과를 바탕으로 소비자 반응 분석 결과를 JSON 배열로만 변환해줘.
+
+검색어: {keyword}
+
+검색 결과:
+{search_response.text}
+
+반드시 아래 형식의 JSON 배열만 출력해.
+설명문, 마크다운, 코드블록은 절대 넣지 마.
+
+[
+  {{
+    "title": "기사 제목",
+    "source": "출처",
+    "news_date": "YYYY-MM-DD",
+    "url": "기사 URL",
+    "summary": "소비자 반응과 불만 요소 중심의 2~3문장 요약",
+    "sentiment": "Positive 또는 Neutral 또는 Negative",
+    "risk_level": "Low 또는 Medium 또는 High"
+  }}
+]
+
+분류 기준:
+- sentiment가 소비자 반응 기준으로 긍정이면 Positive, 불만이나 논란 중심이면 Negative, 단순 정보면 Neutral
+- risk_level은 브랜드 평판이나 고객 이탈 가능성이 높으면 High, 일부 우려면 Medium, 영향이 작으면 Low
+"""
+
+            try:
+                json_response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=json_prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.0,
+                    ),
+                )
+            except Exception as e:
+                st.error("AI 응답을 JSON으로 변환하는 중 문제가 발생했습니다.")
+                st.caption(str(e))
                 st.stop()
 
-            items = replace_with_grounded_urls(items, response)
+            items = extract_json_array(json_response.text)
+
+            if not items:
+                st.error("AI 응답을 JSON으로 해석하지 못했습니다. 잠시 후 다시 검색해 보세요.")
+                with st.expander("AI 원본 응답 확인"):
+                    st.write(search_response.text)
+                    st.write(json_response.text)
+                st.stop()
+
+            items = replace_with_grounded_urls(items, search_response)
 
             valid_results = []
+
             for item in items[:2]:
-                url = str(item.get("url", "")).strip()
+                url = safe_text(item.get("url", ""))
 
                 if not url.startswith("http") or "grounding-api-redirect" in url:
                     continue
 
                 record = {
                     "keyword": keyword.strip(),
-                    "title": str(item.get("title", "제목 없음")).strip(),
-                    "source": str(item.get("source", "출처 미상")).strip(),
-                    "news_date": str(item.get("news_date", "")).strip(),
+                    "title": safe_text(item.get("title"), "제목 없음"),
+                    "source": safe_text(item.get("source"), "출처 미상"),
+                    "news_date": safe_text(item.get("news_date"), ""),
                     "url": url,
-                    "summary": str(item.get("summary", "")).strip(),
+                    "summary": safe_text(item.get("summary"), "요약 없음"),
                     "sentiment": normalize_sentiment(item.get("sentiment", "Neutral")),
                     "risk_level": normalize_risk(item.get("risk_level", "Low")),
                 }
+
                 valid_results.append(record)
 
             if not valid_results:
-                st.warning("사용 가능한 실제 기사 URL을 찾지 못했습니다. 다른 키워드로 다시 시도해 보세요.")
+                st.warning("실제 기사 URL을 확인하지 못했습니다. 키워드를 더 구체적으로 입력해 보세요.")
+                with st.expander("검색 원본 확인"):
+                    st.write(search_response.text)
                 st.stop()
 
             saved_count = 0
             duplicate_count = 0
 
             for res in valid_results:
-                sentiment_class = {
-                    "Positive": "badge-positive",
-                    "Neutral": "badge-neutral",
-                    "Negative": "badge-negative"
-                }.get(res["sentiment"], "badge-neutral")
-
-                risk_color = {
-                    "Low": "#2563EB",
-                    "Medium": "#D97706",
-                    "High": "#DC2626"
-                }.get(res["risk_level"], "#2563EB")
-
                 st.markdown(f"""
-                <div class="card">
-                    <div style="display:flex; justify-content:space-between; gap:1rem;">
-                        <h4 style="margin:0; color:#111827;">{res["title"]}</h4>
-                        <span style="color:#64748B; font-size:0.9rem; white-space:nowrap;">
-                            {res["source"]} · {res["news_date"]}
-                        </span>
-                    </div>
-                    <p style="margin:1rem 0; color:#334155; line-height:1.6;">
-                        {res["summary"]}
-                    </p>
-                    <div>
-                        <span class="{sentiment_class}">감성: {sentiment_ko(res["sentiment"])}</span>
-                        <span style="color:{risk_color}; font-weight:700; margin-left:10px;">
-                            리스크: {risk_ko(res["risk_level"])}
-                        </span>
-                    </div>
+                <div class="insight-card">
+                    <div class="insight-title">{res["title"]}</div>
+                    <div class="meta">{res["source"]} · {res["news_date"]}</div>
+                    <div class="summary">{res["summary"]}</div>
+                    <span class="badge {sentiment_badge_class(res["sentiment"])}">감성: {sentiment_ko(res["sentiment"])}</span>
+                    <span class="badge {risk_badge_class(res["risk_level"])}">리스크: {risk_ko(res["risk_level"])}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -381,12 +510,17 @@ if selected == "소비자 반응 검색":
                     else:
                         st.warning(f"일부 데이터 저장 중 문제가 발생했습니다: {e}")
 
-            st.toast(f"저장 완료: 신규 {saved_count}건, 중복 생략 {duplicate_count}건")
+            st.toast(f"분석 완료: 신규 저장 {saved_count}건, 중복 생략 {duplicate_count}건")
 
-
-elif selected == "저장된 인사이트":
-    st.subheader("저장된 인사이트")
-    st.caption("Supabase에 저장된 소비자 반응 분석 결과를 조회하고 필터링할 수 있습니다.")
+# -------------------------------------------------
+# 7. 저장소
+# -------------------------------------------------
+elif selected == "인사이트 저장소":
+    st.markdown("<div class='main-title'>인사이트 저장소</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='sub-text'>저장된 소비자 반응 분석 결과를 검색하고 필터링할 수 있습니다.</div>",
+        unsafe_allow_html=True
+    )
 
     try:
         data_res = supabase.table("consumer_insights").select("*").order("created_at", desc=True).execute()
@@ -403,7 +537,7 @@ elif selected == "저장된 인사이트":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        keyword_filter = st.text_input("키워드/제목 검색", placeholder="예: 쿠팡, 배송, 가격")
+        keyword_filter = st.text_input("키워드/제목/요약 검색", placeholder="예: 쿠팡, 배송, 가격")
 
     with col2:
         sentiment_filter_ko = st.multiselect("감성 필터", ["긍정", "중립", "부정"])
@@ -436,7 +570,13 @@ elif selected == "저장된 인사이트":
     view_df["감성"] = view_df["sentiment"].apply(sentiment_ko)
     view_df["리스크"] = view_df["risk_level"].apply(risk_ko)
 
-    columns = {
+    display_cols = [
+        "keyword", "title", "source", "news_date",
+        "감성", "리스크", "summary", "url", "created_at"
+    ]
+    display_cols = [c for c in display_cols if c in view_df.columns]
+
+    rename_cols = {
         "keyword": "검색어",
         "title": "제목",
         "source": "출처",
@@ -446,16 +586,14 @@ elif selected == "저장된 인사이트":
         "created_at": "저장일시"
     }
 
-    display_cols = ["keyword", "title", "source", "news_date", "감성", "리스크", "summary", "url", "created_at"]
-    display_cols = [c for c in display_cols if c in view_df.columns]
-
     st.dataframe(
-        view_df[display_cols].rename(columns=columns),
+        view_df[display_cols].rename(columns=rename_cols),
         use_container_width=True,
         hide_index=True
     )
 
     csv = view_df.to_csv(index=False).encode("utf-8-sig")
+
     st.download_button(
         "CSV 다운로드",
         data=csv,
@@ -463,10 +601,15 @@ elif selected == "저장된 인사이트":
         mime="text/csv"
     )
 
-
+# -------------------------------------------------
+# 8. 대시보드
+# -------------------------------------------------
 elif selected == "분석 대시보드":
-    st.subheader("분석 대시보드")
-    st.caption("저장된 데이터를 바탕으로 브랜드별 언급량, 감성, 리스크 흐름을 확인합니다.")
+    st.markdown("<div class='main-title'>분석 대시보드</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='sub-text'>저장된 데이터를 바탕으로 브랜드별 언급량, 감성 비율, 리스크 수준을 확인합니다.</div>",
+        unsafe_allow_html=True
+    )
 
     try:
         data_res = supabase.table("consumer_insights").select("*").execute()
@@ -488,10 +631,33 @@ elif selected == "분석 대시보드":
 
     k1, k2, k3, k4 = st.columns(4)
 
-    k1.markdown(f"<div class='kpi-card'><small>총 저장 건수</small><h3>{total}</h3></div>", unsafe_allow_html=True)
-    k2.markdown(f"<div class='kpi-card'><small>부정 반응 비율</small><h3 style='color:#DC2626;'>{negative_rate:.1f}%</h3></div>", unsafe_allow_html=True)
-    k3.markdown(f"<div class='kpi-card'><small>고위험 이슈</small><h3 style='color:#DC2626;'>{high_risk_count}</h3></div>", unsafe_allow_html=True)
-    k4.markdown(f"<div class='kpi-card'><small>최다 검색 키워드</small><h3>{top_keyword}</h3></div>", unsafe_allow_html=True)
+    k1.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-label">총 저장 건수</div>
+        <div class="kpi-value">{total}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    k2.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-label">부정 반응 비율</div>
+        <div class="kpi-value" style="color:#DC2626;">{negative_rate:.1f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    k3.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-label">고위험 이슈</div>
+        <div class="kpi-value" style="color:#DC2626;">{high_risk_count}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    k4.markdown(f"""
+    <div class="kpi-card">
+        <div class="kpi-label">최다 검색 키워드</div>
+        <div class="kpi-value">{top_keyword}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
 
@@ -509,6 +675,7 @@ elif selected == "분석 대시보드":
             text="건수",
             color_discrete_sequence=["#4F46E5"]
         )
+        fig1.update_traces(textposition="outside")
         fig1.update_layout(
             xaxis_title="키워드",
             yaxis_title="저장 건수",
@@ -527,7 +694,7 @@ elif selected == "분석 대시보드":
             x="날짜",
             y="건수",
             markers=True,
-            color_discrete_sequence=["#4F46E5"]
+            color_discrete_sequence=["#7C3AED"]
         )
         fig2.update_layout(
             xaxis_title="날짜",
@@ -549,10 +716,11 @@ elif selected == "분석 대시보드":
             sentiment_df,
             names="감성",
             values="건수",
+            hole=0.45,
             color="감성",
             color_discrete_map={
                 "긍정": "#10B981",
-                "중립": "#9CA3AF",
+                "중립": "#94A3B8",
                 "부정": "#EF4444"
             }
         )
@@ -577,6 +745,7 @@ elif selected == "분석 대시보드":
                 "높음": "#EF4444"
             }
         )
+        fig4.update_traces(textposition="outside")
         fig4.update_layout(
             xaxis_title="리스크 수준",
             yaxis_title="건수",
