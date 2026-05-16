@@ -292,6 +292,17 @@ def replace_with_best_url(items, search_response, keyword):
     return items
 
 
+def sort_by_news_date_desc(records):
+    df = pd.DataFrame(records)
+    if df.empty or "news_date" not in df.columns:
+        return records
+
+    df["_sort_date"] = pd.to_datetime(df["news_date"], errors="coerce")
+    df = df.sort_values("_sort_date", ascending=False, na_position="last")
+    df = df.drop(columns=["_sort_date"])
+    return df.to_dict("records")
+
+
 with st.sidebar:
     st.markdown("<h2 style='font-weight:800; margin-bottom:0;'>Consumer<br>Pulse AI</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color:#CBD5E1; font-size:0.9rem;'>브랜드 반응 분석 플랫폼</p>", unsafe_allow_html=True)
@@ -324,7 +335,7 @@ with st.sidebar:
 if selected == "소비자 반응 검색":
     st.markdown("<div class='main-title'>소비자 반응 검색</div>", unsafe_allow_html=True)
     st.markdown(
-        "<div class='sub-text'>브랜드나 서비스를 입력하면 최근 기사와 소비자 반응을 바탕으로 긍정·중립·부정 흐름을 분석합니다.</div>",
+        "<div class='sub-text'>브랜드나 서비스를 입력하면 최근 기사와 소비자 반응을 바탕으로 평판 흐름을 분석합니다.</div>",
         unsafe_allow_html=True
     )
 
@@ -360,11 +371,11 @@ if selected == "소비자 반응 검색":
 가져올 개수: {article_count}건
 
 중요한 방향:
-1. 부정 이슈만 찾지 말고, 긍정/중립/부정 반응이 섞이도록 최근 자료를 균형 있게 찾아.
-2. 신제품, 서비스 개선, 매출 성장, 고객 만족, 브랜드 호감 등 긍정 반응도 포함해.
-3. 논란, 불만, 가격, 배송, 품질, 고객응대, 서비스 장애 같은 부정 반응도 포함해.
-4. 단순 기업 공시보다 소비자 반응이나 브랜드 이미지와 연결되는 자료를 우선해.
-5. 뉴스, 기사, 공식 발표, 신뢰 가능한 웹 문서를 중심으로 찾아.
+1. 긍정/중립/부정을 의도적으로 균형 있게 맞추지 마.
+2. 감성 비율을 고려하지 말고, 가장 최근에 나온 기사 중 브랜드 평판이나 소비자 반응과 관련 있는 자료를 우선적으로 찾아.
+3. 소비자 반응, 브랜드 이미지, 고객 경험, 서비스 품질, 가격, 배송, 제품 만족도, 논란, 신제품 반응, 시장 반응과 연결되는 기사를 포함해.
+4. 단순 기업 공시나 주가 기사보다 소비자 또는 브랜드 평판과 연결되는 기사를 우선해.
+5. 결과는 최신순으로 정리해.
 6. 각 항목에 제목, 출처, 날짜, 실제 URL, 핵심 내용을 포함해.
 7. URL은 실제 검색 결과에 있는 링크만 사용해.
 """
@@ -401,21 +412,24 @@ if selected == "소비자 반응 검색":
     "source": "출처",
     "news_date": "YYYY-MM-DD",
     "url": "기사 URL",
-    "summary": "소비자 반응 또는 브랜드 이미지와 연결한 2~3문장 요약",
+    "summary": "브랜드 평판 또는 소비자 반응과 연결한 2~3문장 요약",
     "sentiment": "Positive 또는 Neutral 또는 Negative",
     "risk_level": "Low 또는 Medium 또는 High"
   }}
 ]
 
 분류 기준:
-- 소비자 반응이 긍정적이거나 브랜드 이미지에 도움이 되면 Positive
-- 단순 정보 전달이거나 영향이 명확하지 않으면 Neutral
-- 불만, 논란, 신뢰 하락, 고객 이탈 가능성이 있으면 Negative
+- sentiment는 기사 내용을 읽고 사후적으로 분류해.
+- 브랜드 이미지, 고객 만족, 서비스 개선, 긍정적 반응이면 Positive
+- 단순 정보 전달이거나 감성이 뚜렷하지 않으면 Neutral
+- 논란, 불만, 신뢰 하락, 고객 이탈 가능성이 있으면 Negative
 - risk_level은 평판 리스크가 작으면 Low, 일부 우려면 Medium, 확산 가능성이 크면 High
 
 주의:
-- 반드시 {article_count}건에 가깝게 만들어.
-- 전부 Negative로 만들지 말고 실제 내용에 따라 Positive, Neutral, Negative를 구분해.
+- 감성 비율을 인위적으로 맞추지 마.
+- 긍정/중립/부정 개수를 일부러 조정하지 마.
+- 최신순 흐름을 우선해.
+- 실제 검색 결과에 근거해서만 분류해.
 """
 
             try:
@@ -461,6 +475,8 @@ if selected == "소비자 반응 검색":
                     record["url"] = google_news_fallback(keyword, record["title"])
 
                 valid_results.append(record)
+
+            valid_results = sort_by_news_date_desc(valid_results)
 
             saved_count = 0
             duplicate_count = 0
@@ -598,7 +614,6 @@ elif selected == "분석 대시보드":
     neutral_count = len(df[df["sentiment"] == "Neutral"])
     negative_count = len(df[df["sentiment"] == "Negative"])
     negative_rate = (negative_count / total) * 100 if total else 0
-    high_risk_count = len(df[df["risk_level"] == "High"])
     top_keyword = df["keyword"].mode()[0] if "keyword" in df.columns and not df["keyword"].empty else "-"
 
     k1, k2, k3, k4 = st.columns(4)
